@@ -1,98 +1,57 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from "react";
+import { View, Text, TouchableOpacity, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function WelcomeScreen() {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <SafeAreaView className="flex-1 bg-zinc-950 justify-between p-6">
+      <StatusBar barStyle="light-content" />
+      
+      {/* Top spacing or small indicator */}
+      <View className="items-end">
+        <Text className="text-zinc-500 text-xs font-medium tracking-widest uppercase">
+          v1.0.0
+        </Text>
+      </View>
+
+      {/* Hero Section */}
+      <View className="flex-1 justify-center items-center px-4">
+        {/* Glow decoration */}
+        <View className="absolute w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
+        
+        {/* App Title */}
+        <Text className="text-zinc-50 text-5xl font-extrabold tracking-tight mb-2">
+          Self<Text className="text-indigo-400">OS</Text>
+        </Text>
+        
+        {/* Subtitle */}
+        <Text className="text-zinc-400 text-base text-center max-w-[280px] leading-relaxed">
+          The intelligent operating system for your personal growth.
+        </Text>
+      </View>
+
+      {/* Call to Action & Test Section */}
+      <View className="gap-4">
+        {/* Tailwind Verification Indicator */}
+        <View className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 items-center">
+          <Text className="text-zinc-300 text-sm font-semibold mb-1">
+            NativeWind Integration Active
+          </Text>
+          <Text className="text-zinc-500 text-xs text-center">
+            Styles rendered using utility-first classes successfully.
+          </Text>
+        </View>
+
+        {/* Temporary Entry Action */}
+        <TouchableOpacity 
+          className="bg-indigo-600 active:bg-indigo-700 py-4 rounded-xl items-center shadow-lg shadow-indigo-600/20"
+          onPress={() => console.log("Get Started pressed")}
+        >
+          <Text className="text-zinc-50 font-semibold text-base">
+            Get Started
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
