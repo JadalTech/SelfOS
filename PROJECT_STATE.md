@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Batch** | Batch 4B ✅ (Routine Infrastructure Integrated) |
-| **Branch** | `feature/authentication` |
-| **Last Tag** | `v0.1.0` (Batch 1 — Project Foundation) |
-| **Last Commit** | Batch 4A + 4B (pending commit) |
+| **Current Batch** | Batch 4C ✅ (Routine CRUD UI Complete) |
+| **Branch** | `feature/routine-ui` |
+| **Last Tag** | `v0.4.2` (Batch 4B — Routine Infrastructure Integration) |
+| **Last Commit** | Batch 4C (pending commit) |
 
 
 ---
@@ -61,6 +61,11 @@
 - **RoutineService**: Handles direct Firestore collection access, queries, soft-deletion archiving, and atomic `writeBatch` transactions.
 - **RoutineRepository**: Coordinates domain engine calculations with Firestore services, validates authenticated user sessions, and normalizes errors into `AppError`.
 - **React Query Hooks**: `useRoutines`, `useRoutine`, and `useRoutineMutations` with hierarchical `routineKeys` query keys factory.
+
+### Batch 4C — Routine CRUD UI ✅
+- **UI Components**: `RoutineCard`, `LoadingRoutineCard`, `EmptyRoutineState`, `RoutineStatusBadge`, `ArchiveRoutineDialog`, `FrequencySelector`, `ScheduleSelector`, `ReminderPicker`, `RoutineForm`.
+- **Screen Components**: `RoutineListScreen` (with search, category filter, sorting, pull-to-refresh), `RoutineDetailsScreen` (with completion stats, logs, actions), `CreateRoutineScreen`, `EditRoutineScreen`.
+- **Expo Router Routes**: `app/(app)/routines/index.tsx`, `new.tsx`, `[id].tsx`, `[id]/edit.tsx`.
 
 ---
 

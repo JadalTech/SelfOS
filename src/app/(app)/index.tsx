@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/shared/stores';
 import { authRepository } from '@/features/auth/repository/auth.repository';
 import { InlineLoader } from '@/shared/components';
 
 export default function DashboardPlaceholder() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -25,23 +27,29 @@ export default function DashboardPlaceholder() {
           SelfOS Portal
         </Text>
         <Text className="text-zinc-50 text-3xl font-extrabold tracking-tight mb-6">
-          Authenticated Screen
+          Welcome to SelfOS
         </Text>
 
-        <View className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm gap-4">
+        <View className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-sm gap-4 mb-6">
           <View className="border-b border-zinc-800 pb-3">
-            <Text className="text-zinc-500 text-xs">Display Name</Text>
+            <Text className="text-zinc-500 text-xs">Logged in as</Text>
             <Text className="text-zinc-50 text-base font-semibold">
-              {user?.displayName || 'Anonymous User'}
+              {user?.displayName || 'User'}
             </Text>
+            <Text className="text-zinc-400 text-xs mt-0.5">{user?.email || 'N/A'}</Text>
           </View>
 
-          <View>
-            <Text className="text-zinc-500 text-xs">Email Address</Text>
-            <Text className="text-zinc-50 text-base font-medium">
-              {user?.email || 'N/A'}
+          {/* Quick Access to Routines */}
+          <TouchableOpacity
+            className="bg-emerald-500 active:bg-emerald-600 py-3.5 rounded-xl items-center justify-center shadow-lg shadow-emerald-500/20"
+            onPress={() => router.push('/(app)/routines')}
+            accessibilityRole="button"
+            accessibilityLabel="Open Routines Manager"
+          >
+            <Text className="text-zinc-950 font-extrabold text-base">
+              Open Routines Engine →
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
