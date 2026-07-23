@@ -24,8 +24,8 @@ export function getRoutineStatusForDate(
   dateStr: string,
   referenceDate = new Date()
 ): CalculatedDayStatus {
-  // Find log matching the target date
-  const log = logs.find((l) => l.date === dateStr);
+  // Find log matching the target routine and date
+  const log = logs.find((l) => l.routineId === routine.id && l.date === dateStr);
   if (log) {
     return log.status; // 'completed' | 'skipped' | 'missed'
   }
@@ -78,7 +78,7 @@ export function calculateCompletionRate(
 
     if (isRoutineScheduledForDate(routine, current)) {
       scheduledDaysCount++;
-      const log = logs.find((l) => l.date === dateStr);
+      const log = logs.find((l) => l.routineId === routine.id && l.date === dateStr);
       if (log && log.status === 'completed') {
         completedDaysCount++;
       }

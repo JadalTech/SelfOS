@@ -18,8 +18,8 @@ const scheduler_1 = require("./scheduler");
  * @param referenceDate Optional current date reference to distinguish past/future.
  */
 function getRoutineStatusForDate(routine, logs, dateStr, referenceDate = new Date()) {
-    // Find log matching the target date
-    const log = logs.find((l) => l.date === dateStr);
+    // Find log matching the target routine and date
+    const log = logs.find((l) => l.routineId === routine.id && l.date === dateStr);
     if (log) {
         return log.status; // 'completed' | 'skipped' | 'missed'
     }
@@ -58,7 +58,7 @@ function calculateCompletionRate(routine, logs, startDateStr, endDateStr) {
         const dateStr = `${y}-${m}-${d}`;
         if ((0, scheduler_1.isRoutineScheduledForDate)(routine, current)) {
             scheduledDaysCount++;
-            const log = logs.find((l) => l.date === dateStr);
+            const log = logs.find((l) => l.routineId === routine.id && l.date === dateStr);
             if (log && log.status === 'completed') {
                 completedDaysCount++;
             }

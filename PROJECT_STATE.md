@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Batch** | Batch 4C ✅ (Routine CRUD UI Complete) |
-| **Branch** | `feature/routine-ui` |
-| **Last Tag** | `v0.4.2` (Batch 4B — Routine Infrastructure Integration) |
-| **Last Commit** | Batch 4C (pending commit) |
+| **Current Batch** | Batch 5B ✅ (Dashboard Implementation Complete) |
+| **Branch** | `feature/dashboard` |
+| **Last Tag** | `v0.5.0` (Batch 5B — Dashboard Implementation) |
+| **Last Commit** | Batch 5B (completed & verified) |
 
 
 ---
@@ -66,6 +66,17 @@
 - **UI Components**: `RoutineCard`, `LoadingRoutineCard`, `EmptyRoutineState`, `RoutineStatusBadge`, `ArchiveRoutineDialog`, `FrequencySelector`, `ScheduleSelector`, `ReminderPicker`, `RoutineForm`.
 - **Screen Components**: `RoutineListScreen` (with search, category filter, sorting, pull-to-refresh), `RoutineDetailsScreen` (with completion stats, logs, actions), `CreateRoutineScreen`, `EditRoutineScreen`.
 - **Expo Router Routes**: `app/(app)/routines/index.tsx`, `new.tsx`, `[id].tsx`, `[id]/edit.tsx`.
+
+### Batch 5A — Dashboard Architecture Planning ✅
+- **Dynamic Widget Registry**: `widget.registry.ts` defining widget specs with localized `WidgetErrorFallback` error boundary wrappers.
+- **Modular View Models & Mappers**: Split into domain-specific mappers (`greeting.mapper.ts`, `progress.mapper.ts`, `stats.mapper.ts`, `weekly.mapper.ts`, `activity.mapper.ts`) producing `DashboardViewModel`.
+- **Module Registry**: `module.registry.ts` catalog for active and upcoming health modules.
+
+### Batch 5B — Dashboard Implementation ✅
+- **UI Components**: `DashboardHeader`, `TodayProgressCard`, `TodayRoutinesList`, `QuickActionsBar`, `StreakOverviewCard`, `StatsGrid`, `WeeklyProgressCard`, `RecentActivityCard`, `ModuleNavGrid`, `LoadingDashboard`, `EmptyDashboard`, `ErrorDashboard`.
+- **Aggregation Hook**: `useDashboard` coordinating parallel React Query routine and log queries with quick action handlers (`completeRoutine`, `skipRoutine`).
+- **Screen Component**: `DashboardScreen` composing presentational widgets with pull-to-refresh.
+- **Route Integration**: `src/app/(app)/index.tsx` rendering `DashboardScreen` as primary home screen.
 
 ---
 

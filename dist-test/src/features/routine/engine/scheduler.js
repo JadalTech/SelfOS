@@ -27,7 +27,7 @@ function getLocalDateInTimezone(timezone, date = new Date()) {
         });
         return formatter.format(date); // Output format: YYYY-MM-DD
     }
-    catch (error) {
+    catch {
         // Fallback if timezone is invalid or unsupported
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, '0');
