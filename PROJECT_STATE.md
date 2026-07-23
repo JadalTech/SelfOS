@@ -8,10 +8,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Batch** | Batch 5B ✅ (Dashboard Implementation Complete) |
-| **Branch** | `feature/dashboard` |
-| **Last Tag** | `v0.5.0` (Batch 5B — Dashboard Implementation) |
-| **Last Commit** | Batch 5B (completed & verified) |
+| **Current Batch** | Batch 6F ✅ (AI Hair Coach & Intelligent Recommendations Complete — Haircare Module Complete) |
+| **Branch** | `feature/haircare-ai` |
+| **Last Tag** | `v0.8.0` (Batch 6F — AI Hair Coach & Intelligent Recommendations) |
+| **Last Commit** | Batch 6F (completed & verified) |
 
 
 ---
@@ -77,6 +77,55 @@
 - **Aggregation Hook**: `useDashboard` coordinating parallel React Query routine and log queries with quick action handlers (`completeRoutine`, `skipRoutine`).
 - **Screen Component**: `DashboardScreen` composing presentational widgets with pull-to-refresh.
 - **Route Integration**: `src/app/(app)/index.tsx` rendering `DashboardScreen` as primary home screen.
+
+### Batch 6A — Haircare Module Architecture Planning ✅
+- **Domain Extension Specification**: Designed `HairProduct`, `HairRoutine`, `HairLog` domain entities extending core generic `Routine` without duplicating scheduling/streak/completion math.
+- **Clean Architecture Pipeline**: Specified UI ⇄ Hooks ⇄ Mappers ⇄ Repository ⇄ Service ⇄ Firestore pipeline.
+- **Firestore Subcollections**: Schema definitions under `users/{uid}/hair_products`, `users/{uid}/hair_routines`, `users/{uid}/hair_logs`.
+
+### Batch 6B — Haircare Module Implementation (v0.7.0) ✅
+- **Domain Entities & Converters**: Firestore converters for `HairProduct`, `HairRoutine`, `HairLog` with Timestamp transformations.
+- **Service & Repository**: `HaircareService` for collection CRUD and `HaircareRepository` returning `Result<T, AppError>`.
+- **Modular Mappers**: `products.mapper.ts`, `routines.mapper.ts`, `logs.mapper.ts`, `dashboard.mapper.ts`.
+- **Zod Validation Schemas**: Form validation for products, routines, and wash logs.
+- **React Query Hooks**: `useHairProducts`, `useHairRoutines`, `useHairLogs`, `useHaircareDashboard`.
+- **Components**: `HaircareHeader`, `ProductCard`, `ProductForm`, `HairRoutineCard`, `HairRoutineForm`, `HairLogCard`, `HairLogForm`, `HaircareWidget`, `LoadingHaircare`, `EmptyHaircare`, `ErrorHaircare`.
+- **Screens & Routes**: `HaircareDashboardScreen`, `HairProductsScreen`, `HairRoutinesScreen`, `HairLogsScreen` under `app/(app)/haircare/`.
+- **Main Dashboard Integration**: Updated `REGISTERED_MODULES` in `module.registry.ts`.
+
+### Batch 6C — Hair Progress Photos & Timeline (v0.7.1) ✅
+- **Domain Entity & Storage**: `HairPhoto` domain model, `hairPhotoConverter` for Firestore metadata (`users/{uid}/hair_photos`), and `HairStorageService` for Firebase Storage uploads & deletions (`users/{uid}/haircare/photos/{photoId}.jpg`).
+- **Repository**: `HairPhotoRepository` coordinating binary storage uploads and Firestore metadata returning `Result<T, AppError>`.
+- **Photos Mapper & Validation**: `photos.mapper.ts` (`mapToHairPhotoVM`, `groupPhotosByMonth`) and `hairPhotoUploadSchema`.
+- **React Query Hooks**: `useHairPhotos`, `useUploadHairPhoto`, `useDeleteHairPhoto`, `useHairTimeline`.
+- **Components**: `PhotoCard`, `PhotoGrid`, `TimelineCard`, `ComparisonCard`, `UploadPhotoButton`, `DeletePhotoDialog`, `EmptyGallery`.
+- **Screens & Routes**: `HairTimelineScreen`, `ComparePhotosScreen` under `app/(app)/haircare/timeline.tsx` and `app/(app)/haircare/compare.tsx`.
+- **Dashboard Preview Integration**: Added timeline stat tile and latest progress photo preview card to `HaircareDashboardScreen`.
+
+### Batch 6D — Hair & Scalp Condition Tracking (v0.7.2) ✅
+- **Domain Entity & Firestore**: `HairCondition` domain model (hair type, porosity, scalp type, density, 1-5 rating metrics, overall health score 1-10, lifestyle factors), `hairConditionConverter` under `users/{uid}/hair_conditions`.
+- **Repository**: `HairConditionRepository` with search, filtering, and CRUD returning `Result<T, AppError>`.
+- **Condition Mapper & Validation**: `condition.mapper.ts` (`mapToHairConditionVM`, `filterConditionVMs`) and `hairConditionSchema`.
+- **React Query Hooks**: `useHairConditions`, `useLatestHairCondition`, `useCreateHairCondition`, `useUpdateHairCondition`, `useDeleteHairCondition`.
+- **Components**: `ConditionBadge`, `ConditionCard`, `ConditionSummaryCard`, `ConditionForm`, `EmptyConditionState`.
+- **Screens & Routes**: `HairConditionHistoryScreen` (with real-time search & scalp type filtering) and `HairConditionFormScreen` (create/edit) under `app/(app)/haircare/condition/`.
+- **Dashboard Summary Integration**: Added scalp condition summary card (`ConditionSummaryCard`) to `HaircareDashboardScreen`.
+
+### Batch 6E — Haircare Analytics & Insights (v0.7.3) ✅
+- **Pure Calculation Engine**: `hairAnalytics.ts` (`calculateWeeklyAnalytics`, `calculateMonthlyAnalytics`, `calculateProductAnalytics`, `calculateConditionTrends`, `generateInsightCards`, `buildHairAnalyticsVM`). Zero side effects, zero async.
+- **Analytics ViewModels**: `HairAnalyticsVM`, `WeeklyAnalyticsVM`, `MonthlyAnalyticsVM`, `ProductUsageVM`, `ConditionTrendVM`, `InsightCardVM`.
+- **React Query Hooks**: `useHairAnalytics` aggregating routines, hair routines, products, wash logs, photos, and condition assessments.
+- **Pure Chart Components**: `InsightCard`, `CompletionBarChart` (weekly frequency breakdown), `ConditionTrendChart` (scalp health averages & trend direction), `ProductUsageChart` (usage frequency ranking), `AnalyticsSummaryWidget`.
+- **Screens & Routes**: `HairAnalyticsDashboardScreen` under `app/(app)/haircare/analytics.tsx`.
+- **Dashboard Integration**: Added Analytics CTA header button and `AnalyticsSummaryWidget` tile to `HaircareDashboardScreen`.
+
+### Batch 6F — AI Hair Coach & Intelligent Recommendations (v0.8.0) ✅
+- **AI Engine & Context**: Provider strategy pattern (`HairAIProvider`, `FallbackHeuristicAIProvider`), `HairAIContextBuilder` (building token-efficient structured JSON payload from user history), and `PromptBuilder` system/user prompts.
+- **Service & Repository**: `HairAIService` (rule-based recommendation engine, natural language Q&A, and weekly progress reviews) and `HairAIRepository` returning `Result<T, AppError>`.
+- **React Query Hooks**: `useHairRecommendations`, `useAskHairCoach`, `useWeeklyHairReview`.
+- **Presentation Components**: `ChatMessage`, `RecommendationCard`, `AICoachCard` (Dashboard widget), `PromptInput`, `EmptyConversation`.
+- **Screens & Routes**: `HairCoachScreen` under `app/(app)/haircare/coach.tsx` (featuring Chat, Recommendations, and Weekly Review tabs).
+- **Dashboard Integration**: Added AI Coach CTA header button and `AICoachCard` summary widget to `HaircareDashboardScreen`.
 
 ---
 

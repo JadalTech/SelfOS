@@ -24,8 +24,9 @@ export const REGISTERED_MODULES: ModuleNavVM[] = [
     description: 'Wash schedules & treatment logs',
     icon: '💇‍♂️',
     route: '/(app)/haircare',
-    enabled: false,
-    comingSoon: true,
+    enabled: true,
+    comingSoon: false,
+    badge: 'Active',
   },
   {
     id: 'skincare',
