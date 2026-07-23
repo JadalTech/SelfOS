@@ -8,10 +8,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Batch** | Batch 2B ✅ (Infrastructure Complete) |
-| **Branch** | `develop` |
+| **Current Batch** | Batch 4B ✅ (Routine Infrastructure Integrated) |
+| **Branch** | `feature/authentication` |
 | **Last Tag** | `v0.1.0` (Batch 1 — Project Foundation) |
-| **Last Commit** | Batch 2A + 2B (pending commit) |
+| **Last Commit** | Batch 4A + 4B (pending commit) |
+
 
 ---
 
@@ -42,6 +43,24 @@
 - **Utilities**: date helpers, Zod validation schemas, general helpers
 - **Loading Components**: `FullScreenLoader`, `InlineLoader`
 - **Master Barrel**: `@/shared` single import point
+
+### Batch 3 — Authentication ✅
+- **Lightweight AppUser**: Clean mapped representation of the Firebase User object.
+- **Service & Repository**: `FirebaseAuthService` communicating with Firebase SDK and `AuthRepository` implementing the mapping and error normalization.
+- **Four Zustand States**: `unknown`, `checking`, `authenticated`, `unauthenticated` states to eliminate UI flickering during startup.
+- **Router Guards & Layouts**: Reusable `useRequireAuth` layout guard with stack layouts split into protected `(app)` and public `(auth)` file-system groups.
+- **Forms & Validation**: Hook Form controllers and Zod schema validations for Login, Register, Forgot Password, and Email Verification.
+### Batch 4A — Generic Routine Domain Engine ✅
+- **Pure Engine Architecture**: `scheduler.ts`, `streak.ts`, and `completion.ts` implemented in `src/features/routine/engine/` with zero database or framework dependencies.
+- **Timezone-Aware Scheduling**: Daily, weekly, monthly, and custom day calculations relative to IANA timezones.
+- **Streak Calculation**: Pure functions calculating consecutive logging and log-rebuilds on undo.
+- **Form Schemas**: Zod validation rules in `routine.validation.ts`.
+
+### Batch 4B — Routine Infrastructure Integration ✅
+- **Firestore Converters**: `routineConverter` and `routineLogConverter` handling Timestamp ⇄ Date transformations, default values, and nullable fields.
+- **RoutineService**: Handles direct Firestore collection access, queries, soft-deletion archiving, and atomic `writeBatch` transactions.
+- **RoutineRepository**: Coordinates domain engine calculations with Firestore services, validates authenticated user sessions, and normalizes errors into `AppError`.
+- **React Query Hooks**: `useRoutines`, `useRoutine`, and `useRoutineMutations` with hierarchical `routineKeys` query keys factory.
 
 ---
 
@@ -96,6 +115,11 @@ src/features/
 | `require()` for Firebase auth persistence | Firebase v12 TS typing bug — `getReactNativePersistence` missing from types |
 | Minimal providers | Only compose what exists now; avoid speculative providers |
 | `Result<T,E>` union | Type-safe error handling without try/catch at every call site |
+| Direct service layer | No interfaces for FirebaseAuthService because there is only one provider, avoiding unnecessary abstraction |
+| AppUser mapping | Used a lightweight AppUser type mapped from Firebase User to keep user model intentionally simple |
+| Four auth states | Used unknown, checking, authenticated, unauthenticated to prevent UI flickering during session restoration |
+| Single Auth listener | Mounted once at root _layout to ensure consistent single source of truth in Zustand store |
+| No React Query for Auth | Auth is strictly client application state, not server data caching |
 
 ---
 
@@ -125,8 +149,8 @@ src/features/
 
 | Batch | Scope | Status |
 |-------|-------|--------|
-| 3 | Authentication (Firebase Auth, screens, auth flow) | 🔲 Next |
-| 4 | Navigation + Dashboard shell | 🔲 Planned |
+| 3 | Authentication (Firebase Auth, screens, auth flow) | ✅ Completed |
+| 4 | Navigation + Dashboard shell | 🔲 Next |
 | 5 | Daily Timeline + Checklist | 🔲 Planned |
 | 6 | Routines (Haircare, Skincare) | 🔲 Planned |
 | 7 | Nutrition + Protein Rotation | 🔲 Planned |
@@ -140,9 +164,9 @@ src/features/
 
 ## Next Recommended Task
 
-**Batch 3: Authentication**
-- Firebase Auth service (sign up, sign in, sign out, password reset)
-- Auth screens (Login, Signup, Forgot Password)
-- Auth state listener (`onAuthStateChanged` → `useAuthStore`)
-- Protected route guard
-- Onboarding flow
+**Batch 4: Navigation & Dashboard Shell**
+- Define tab navigation layout using Expo Router
+- Design bottom navigation layout and routing
+- Create Dashboard view shell structure
+- Support routing checks for onboarding status
+

@@ -1,8 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/shared/stores";
+import { FullScreenLoader } from "@/shared/components";
 
 export default function WelcomeScreen() {
+  const router = useRouter();
+  const status = useAuthStore((state) => state.status);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  useEffect(() => {
+    if (isInitialized && status === 'authenticated') {
+      router.replace('/(app)');
+    }
+  }, [status, isInitialized, router]);
+
+  if (!isInitialized || status === 'unknown') {
+    return <FullScreenLoader message="Initializing SelfOS..." />;
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-zinc-950 justify-between p-6">
       <StatusBar barStyle="light-content" />
@@ -45,7 +62,7 @@ export default function WelcomeScreen() {
         {/* Temporary Entry Action */}
         <TouchableOpacity 
           className="bg-indigo-600 active:bg-indigo-700 py-4 rounded-xl items-center shadow-lg shadow-indigo-600/20"
-          onPress={() => console.log("Get Started pressed")}
+          onPress={() => router.push('/(auth)/login')}
         >
           <Text className="text-zinc-50 font-semibold text-base">
             Get Started

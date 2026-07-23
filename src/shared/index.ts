@@ -28,7 +28,7 @@ export { queryClient } from './query';
 
 // Stores
 export { useAuthStore, useAppStore, useSettingsStore } from './stores';
-export type { AuthUser } from './stores';
+export type { AppUser, AuthStatus } from './stores';
 
 // Theme
 export { colors, spacing, typography, fontSizes, fontWeights, lineHeights, radius, shadows, shadow } from './theme';
