@@ -15,6 +15,8 @@ export type AppErrorCode =
   | 'FIREBASE_ERROR'
   | 'NOT_FOUND'
   | 'PERMISSION_DENIED'
+  | 'AI_SERVICE_ERROR'
+  | 'AI_COOLDOWN'
   | 'UNKNOWN_ERROR';
 
 export class AppError extends Error {

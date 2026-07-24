@@ -1,0 +1,15 @@
+export const skincareKeys = {
+  all: ['skincare'] as const,
+  products: () => [...skincareKeys.all, 'products'] as const,
+  productById: (id: string) => [...skincareKeys.products(), id] as const,
+  routines: () => [...skincareKeys.all, 'routines'] as const,
+  routineById: (id: string) => [...skincareKeys.routines(), id] as const,
+  logs: () => [...skincareKeys.all, 'logs'] as const,
+  assessments: () => [...skincareKeys.all, 'assessments'] as const,
+  latestAssessment: () => [...skincareKeys.assessments(), 'latest'] as const,
+  photos: () => [...skincareKeys.all, 'photos'] as const,
+  reminders: () => [...skincareKeys.all, 'reminders'] as const,
+  dashboard: () => [...skincareKeys.all, 'dashboard'] as const,
+  analytics: () => [...skincareKeys.all, 'analytics'] as const,
+  ai: () => [...skincareKeys.all, 'ai'] as const,
+} as const;
