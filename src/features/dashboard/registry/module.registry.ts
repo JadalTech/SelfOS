@@ -44,8 +44,9 @@ export const REGISTERED_MODULES: ModuleNavVM[] = [
     description: 'Macro intake & hydration targets',
     icon: '🥗',
     route: '/(app)/nutrition',
-    enabled: false,
-    comingSoon: true,
+    enabled: true,
+    comingSoon: false,
+    badge: 'Active',
   },
   {
     id: 'gym',

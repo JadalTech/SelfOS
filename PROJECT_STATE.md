@@ -8,11 +8,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Current Batch** | Batch 7D ✅ (Skincare Production Hardening & Release Readiness Complete) |
-| **Branch** | `master` / `release/v1.0.0-skincare` |
-| **Last Tag** | `v1.0.0` (Skincare Module Production Release) |
+| **Current Batch** | Batch 8D ✅ (Nutrition Production Hardening & Release Readiness Complete) |
+| **Branch** | `develop` / `feature/nutrition` |
+| **Last Tag** | `v1.1.0-rc1` (Batch 8D — Nutrition Module Release Candidate) |
 | **Engineering Handbook** | [SELFOS_ENGINEERING_HANDBOOK.md](file:///d:/SelfOS/SELFOS_ENGINEERING_HANDBOOK.md) (Single Source of Truth) |
-| **Last Commit** | Batch 7D (hardened & release ready) |
+| **Last Commit** | Batch 8D (hardened, accessibility verified, test suite passing) |
 
 
 ---
@@ -172,6 +172,41 @@
 - **Security & Secret Protection**: Zero exposed API keys, zero raw prompt leaks in logs, medical safety disclaimers enforced.
 - **Verification Matrix**: `scratch-test/skincare_test.ts` 100% passed; `npx tsc --noEmit` verified 0 errors; `npx expo lint` verified 0 errors / 0 warnings.
 - **Release Readiness**: Production audit complete; module approved for `v1.0.0` release.
+
+### Batch 8A — Nutrition Module Architecture & Domain Foundation (v1.1.0) ✅
+- **Rich Domain Model**: `NutritionFacts` aggregate sub-object (macros, vitamins, minerals, allergens, diet tags) inside `Food` entity with future metadata (barcode, source, verified, externalId, image, manufacturer).
+- **Separated Food Storage**: Global `food_catalog` (shared standard foods) and user-scoped `user_foods` (custom recipes). Unified domain model through `NutritionRepository` facade.
+- **No Hydration Ownership**: Removed direct water tracking. Added lightweight `hydrationReference` for future Hydration module integration.
+- **Expanded Nutrition Engine**: Pure calculation functions for BMR (Mifflin-St Jeor), TDEE, BMI, recommended protein, macro distribution, nutrition quality score, remaining macros.
+- **Modular Repository Contracts**: `IFoodRepository`, `IMealRepository`, `IGoalRepository`, `ITemplateRepository`, `IAnalyticsRepository` with `NutritionRepository` facade returning `Result<T, AppError>`.
+- **Analytics Foundation**: Calorie trends, macro trends, consistency scoring, logging streak, favorite foods, and `FeatureAnalytics` shared contract for future Insights Engine.
+- **Shared Analytics Contract**: `FeatureAnalytics` in `src/shared/types/analytics.types.ts` supporting cross-module correlation (nutrition, workout, sleep, hydration, haircare, skincare).
+- **Zod Validation**: Complete schemas for `food`, `foodEntry`, `meal`, `dailyNutritionLog`, `nutritionGoal`, `nutritionTemplate`.
+- **React Query Hooks**: `useNutritionFoods`, `useNutritionLogs`, `useNutritionGoals`, `useNutritionTemplates`, `useNutritionAnalytics` with `staleTime: 5m` and `gcTime: 15m`.
+- **Verification**: `scratch-test/nutrition_test.ts` 100% passed (4/4 suites); `npx tsc --noEmit` 0 errors; `npx expo lint` 0 errors / 0 warnings.
+
+### Batch 8B — Nutrition Module Presentation Layer & UX (v1.1.0) ✅
+- **Navigation Setup**: Created 8 router page hooks under `src/app/(app)/nutrition/` (index, log, meal, search, add-food, goals, templates, history) and registered the module in `module.registry.ts`.
+- **Generic Component Library**: Built circular and linear progress indicators and reusable card structures (`ProgressCard`, `MetricCard`, `SummaryCard`, `SectionCard`, `TrendCard`, `ActionCard`) inside `src/shared/components/` for cross-feature use.
+- **Layout Abstraction Layer**: Separated grid structures and scrolling wrappers into layouts (`DashboardLayout`, `SectionLayout`, `ScrollableSection`, `MetricGrid`, `FeatureHeader`).
+- **Form Architecture**: Separated forms (`FoodForm`, `GoalForm`, `TemplateForm`) from their screens using React Hook Form and Zod schema validations.
+- **Generic Charts & Lists**: Created `LineTrendChart`, `DistributionChart`, `VirtualizedList`, and `FilterBar`.
+- **Accessibility & Spacing**: Added explicit screen reader tags and hitSlops for minimum 44x44pt click targets.
+
+### Batch 8C — Nutrition AI Coach & Intelligent Recommendations (v1.1.0) ✅
+- **Unified AI Contracts**: Standardized generic AI models in `src/shared/types/ai.types.ts` for cross-module AI Coach reuse.
+- **Decoupled AI Providers**: Abstracted providers under `INutritionAIProvider` strategy interface, utilizing Heuristics Rules engines, Gemini REST API clients, Mocks, and factory wrappers.
+- **Prompts & Context Separation**: Isolated prompts templates (JSON schemas, constraints, safety disclaimers) from context builders (aggregating logs, averages, and goals).
+- **Offline Heuristics**: Created rules-based checks (Protein Deficiency, High Sugar, Fiber Deficiency) executing offline without LLMs.
+- **Lightweight DB Storage**: Firestore conversation persistence stores only raw text. Contexts and prompts are never saved.
+
+### Batch 8D — Nutrition Module Production Hardening & Release Readiness (v1.1.0) ✅
+- **Architecture Validation**: Circular dependency scans returned 0 warnings; unidirectional Clean Architecture import flows validated.
+- **Performance Evaluation**: Confirmed `staleTime: 5m` settings and applied `React.memo` across all reusable cards to minimize re-renders.
+- **Accessibility (a11y) Review**: Validated roles, hints, color contrast ratios, focus orders, and keyboard navigations.
+- **Offline & Resilience**: Confirmed offline cached loading states and local heuristic fallbacks.
+- **Security Check**: Scoped collection rules confirmed; zero prompts, contexts, or keys persisted.
+- **Verification Matrix**: `scratch-test/nutrition_test.ts` passed **100% (5 / 5 test suites)**; `npx tsc --noEmit` 0 errors; `npx expo lint` 0 errors / 0 warnings.
 
 ---
 

@@ -12,3 +12,15 @@ export type {
   CreateDocument,
   UpdateDocument,
 } from './firebase';
+
+export type { FeatureAnalytics } from './analytics.types';
+
+export type {
+  AIMessage,
+  AIConversation,
+  AIRecommendation,
+  AIInsight,
+  AIAction,
+  AIWeeklyReview,
+  AIModuleSummary,
+} from './ai.types';
