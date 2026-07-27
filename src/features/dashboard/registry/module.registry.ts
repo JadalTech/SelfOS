@@ -53,9 +53,10 @@ export const REGISTERED_MODULES: ModuleNavVM[] = [
     title: 'Workout & Gym',
     description: 'Exercise volume & fitness logs',
     icon: '🏋️‍♂️',
-    route: '/(app)/gym',
-    enabled: false,
-    comingSoon: true,
+    route: '/(app)/workout',
+    enabled: true,
+    comingSoon: false,
+    badge: 'Active',
   },
   {
     id: 'sleep',
