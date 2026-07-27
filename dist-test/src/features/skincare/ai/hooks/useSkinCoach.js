@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useSkinCoach = useSkinCoach;
+const react_1 = require("react");
 const react_query_1 = require("@tanstack/react-query");
 const auth_store_1 = require("../../../../shared/stores/auth.store");
 const skincare_repository_1 = require("../../repository/skincare.repository");
@@ -8,8 +9,10 @@ const skinAssessment_repository_1 = require("../../repository/skinAssessment.rep
 const skincareAI_repository_1 = require("../repository/skincareAI.repository");
 const SkinAIContextBuilder_1 = require("../utils/SkinAIContextBuilder");
 const queryKeys_1 = require("../../hooks/queryKeys");
-function useSkinCoach() {
+function useSkinCoach(providerType = 'heuristic') {
     const userId = (0, auth_store_1.useAuthStore)((s) => s.user?.uid);
+    const queryClient = (0, react_query_1.useQueryClient)();
+    const [streamingText, setStreamingText] = (0, react_1.useState)('');
     const contextQuery = (0, react_query_1.useQuery)({
         queryKey: queryKeys_1.skincareKeys.ai(),
         queryFn: async () => {
@@ -34,51 +37,81 @@ function useSkinCoach() {
         },
         enabled: !!userId,
     });
+    const conversationQuery = (0, react_query_1.useQuery)({
+        queryKey: [...queryKeys_1.skincareKeys.ai(), 'conversation', userId],
+        queryFn: async () => {
+            if (!userId)
+                return [];
+            const res = await skincareAI_repository_1.skincareAIRepository.fetchConversation(userId);
+            return res.success ? res.data : [];
+        },
+        enabled: !!userId,
+    });
     const askMutation = (0, react_query_1.useMutation)({
         mutationFn: async (question) => {
+            if (!userId)
+                throw new Error('User authentication required');
             const context = contextQuery.data;
             if (!context)
                 throw new Error('Skin AI context unavailable');
-            const res = await skincareAI_repository_1.skincareAIRepository.askCoach(question, context);
+            setStreamingText('');
+            const res = await skincareAI_repository_1.skincareAIRepository.askCoach(userId, question, context, providerType);
             if (!res.success)
                 throw res.error;
             return res.data;
+        },
+        onSuccess: () => {
+            setStreamingText('');
+            queryClient.invalidateQueries({ queryKey: [...queryKeys_1.skincareKeys.ai(), 'conversation', userId] });
+        },
+    });
+    const clearConversationMutation = (0, react_query_1.useMutation)({
+        mutationFn: async () => {
+            if (!userId)
+                return;
+            const res = await skincareAI_repository_1.skincareAIRepository.clearConversation(userId);
+            if (!res.success)
+                throw res.error;
+        },
+        onSuccess: () => {
+            queryClient.setQueryData([...queryKeys_1.skincareKeys.ai(), 'conversation', userId], []);
         },
     });
     const recommendationsQuery = (0, react_query_1.useQuery)({
-        queryKey: [...queryKeys_1.skincareKeys.ai(), 'recommendations'],
+        queryKey: [...queryKeys_1.skincareKeys.ai(), 'recommendations', userId, providerType],
         queryFn: async () => {
-            const context = contextQuery.data;
-            if (!context)
+            if (!userId || !contextQuery.data)
                 return [];
-            const res = await skincareAI_repository_1.skincareAIRepository.getRecommendations(context);
-            if (!res.success)
-                throw res.error;
-            return res.data;
+            const res = await skincareAI_repository_1.skincareAIRepository.generateRecommendations(userId, contextQuery.data, providerType);
+            return res.success ? res.data : [];
         },
-        enabled: !!contextQuery.data,
+        enabled: !!userId && !!contextQuery.data,
     });
     const weeklyReviewQuery = (0, react_query_1.useQuery)({
-        queryKey: [...queryKeys_1.skincareKeys.ai(), 'weeklyReview'],
+        queryKey: [...queryKeys_1.skincareKeys.ai(), 'weeklyReview', userId, providerType],
         queryFn: async () => {
-            const context = contextQuery.data;
-            if (!context)
+            if (!userId || !contextQuery.data)
                 return null;
-            const res = await skincareAI_repository_1.skincareAIRepository.getWeeklyReview(context);
-            if (!res.success)
-                throw res.error;
-            return res.data;
+            const res = await skincareAI_repository_1.skincareAIRepository.generateWeeklyReview(userId, contextQuery.data, providerType);
+            return res.success ? res.data : null;
         },
-        enabled: !!contextQuery.data,
+        enabled: !!userId && !!contextQuery.data,
     });
     return {
         context: contextQuery.data || null,
         isLoadingContext: contextQuery.isLoading,
+        messages: (conversationQuery.data || []),
+        isLoadingMessages: conversationQuery.isLoading,
         askCoach: askMutation.mutateAsync,
         isAsking: askMutation.isPending,
+        streamingText,
+        clearConversation: clearConversationMutation.mutateAsync,
+        isClearing: clearConversationMutation.isPending,
         recommendations: recommendationsQuery.data || [],
         isLoadingRecommendations: recommendationsQuery.isLoading,
         weeklyReview: weeklyReviewQuery.data || null,
         isLoadingWeeklyReview: weeklyReviewQuery.isLoading,
+        refetchRecommendations: recommendationsQuery.refetch,
+        refetchWeeklyReview: weeklyReviewQuery.refetch,
     };
 }

@@ -10,7 +10,7 @@ class SkincareRepository {
     constructor(service = skincare_service_1.skincareService) {
         this.service = service;
     }
-    // --- Products ---
+    // --- Product Inventory ---
     async fetchProducts(userId) {
         try {
             const products = await this.service.fetchProducts(userId);
@@ -20,28 +20,19 @@ class SkincareRepository {
             return (0, types_1.err)(new AppError_1.AppError('FIREBASE_ERROR', 'Failed to fetch skincare products', { originalError: error }));
         }
     }
-    async getProductById(userId, productId) {
-        try {
-            const product = await this.service.getProductById(userId, productId);
-            return (0, types_1.ok)(product);
-        }
-        catch (error) {
-            return (0, types_1.err)(new AppError_1.AppError('FIREBASE_ERROR', 'Failed to fetch skincare product details', { originalError: error }));
-        }
-    }
     async createProduct(userId, input) {
         try {
+            const openedDateParsed = input.openedDate
+                ? typeof input.openedDate === 'string'
+                    ? new Date(input.openedDate)
+                    : input.openedDate
+                : undefined;
             const product = await this.service.createProduct(userId, {
-                name: input.name,
-                brand: input.brand,
-                category: input.category,
-                type: input.type,
+                ...input,
                 keyIngredients: input.keyIngredients || [],
-                openedDate: input.openedDate,
-                shelfLifeMonths: input.shelfLifeMonths,
                 isFavorite: input.isFavorite ?? false,
                 isActive: input.isActive ?? true,
-                notes: input.notes,
+                openedDate: openedDateParsed,
             });
             return (0, types_1.ok)(product);
         }
@@ -67,7 +58,7 @@ class SkincareRepository {
             return (0, types_1.err)(new AppError_1.AppError('FIREBASE_ERROR', 'Failed to delete skincare product', { originalError: error }));
         }
     }
-    // --- Skincare Routines ---
+    // --- Routines ---
     async fetchRoutines(userId) {
         try {
             const routines = await this.service.fetchRoutines(userId);
@@ -79,13 +70,16 @@ class SkincareRepository {
     }
     async createSkincareRoutine(userId, input) {
         try {
+            const frequencyMap = input.frequency === 'biweekly' ? 'weekly' : (input.frequency || 'daily');
+            const intervalVal = input.frequency === 'biweekly' ? 2 : 1;
             // 1. First, create core Generic Routine via routineRepository
-            const coreRoutineResult = await routine_1.routineRepository.createRoutine(userId, {
+            const coreRoutineResult = await routine_1.routineRepository.createRoutine({
                 title: input.title,
                 type: 'skincare',
+                status: 'active',
                 schedule: {
-                    frequency: input.frequency || 'daily',
-                    interval: 1,
+                    frequency: frequencyMap,
+                    interval: intervalVal,
                     daysOfWeek: input.daysOfWeek,
                     startDate: new Date().toISOString().split('T')[0],
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
@@ -95,8 +89,7 @@ class SkincareRepository {
                         {
                             id: `rem_${Date.now()}`,
                             time: input.reminderTime,
-                            days: input.daysOfWeek || [0, 1, 2, 3, 4, 5, 6],
-                            isEnabled: true,
+                            enabled: true,
                         },
                     ]
                     : [],
@@ -104,11 +97,20 @@ class SkincareRepository {
             if (!coreRoutineResult.success) {
                 return (0, types_1.err)(coreRoutineResult.error);
             }
+            const formattedSteps = input.steps.map((s, idx) => ({
+                id: s.id || `step_${idx}_${Date.now()}`,
+                productId: s.productId,
+                stepOrder: s.stepOrder,
+                timeOfDay: s.timeOfDay,
+                waitTimeMinutes: s.waitTimeMinutes,
+                instructions: s.instructions,
+                isOptional: s.isOptional ?? false,
+            }));
             // 2. Create specialized SkincareRoutine entity
             const skincareRoutine = await this.service.createRoutine(userId, {
                 routineId: coreRoutineResult.data.id,
                 timeOfDay: input.timeOfDay,
-                steps: input.steps,
+                steps: formattedSteps,
                 targetedConcerns: input.targetedConcerns || [],
             });
             return (0, types_1.ok)(skincareRoutine);
@@ -130,7 +132,7 @@ class SkincareRepository {
         try {
             await this.service.deleteRoutine(userId, skincareRoutineId);
             if (coreRoutineId) {
-                await routine_1.routineRepository.archiveRoutine(userId, coreRoutineId);
+                await routine_1.routineRepository.archiveRoutine(coreRoutineId);
             }
             return (0, types_1.ok)(undefined);
         }
@@ -151,8 +153,8 @@ class SkincareRepository {
     async logRoutineExecution(userId, input) {
         try {
             // 1. Complete core generic routine log first
-            const coreLogResult = await routine_1.routineRepository.completeRoutine(userId, input.coreRoutineId, input.dateStr);
-            const routineLogId = coreLogResult.success ? coreLogResult.data.log.id : `log_${Date.now()}`;
+            const coreLogResult = await routine_1.routineRepository.completeRoutine(input.coreRoutineId, input.dateStr);
+            const routineLogId = coreLogResult.success ? coreLogResult.data.id : `log_${Date.now()}`;
             // 2. Create specialized SkincareLog entry
             const log = await this.service.createLog(userId, {
                 skincareRoutineId: input.skincareRoutineId,
@@ -170,7 +172,7 @@ class SkincareRepository {
             return (0, types_1.ok)(log);
         }
         catch (error) {
-            return (0, types_1.err)(new AppError_1.AppError('FIREBASE_ERROR', 'Failed to log skincare execution', { originalError: error }));
+            return (0, types_1.err)(new AppError_1.AppError('FIREBASE_ERROR', 'Failed to log skincare routine execution', { originalError: error }));
         }
     }
 }

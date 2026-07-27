@@ -1,0 +1,13 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HaircareWidget = void 0;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = __importDefault(require("react"));
+const react_native_1 = require("react-native");
+exports.HaircareWidget = react_1.default.memo(function HaircareWidget({ data, onOpenModule }) {
+    const upcoming = data.upcomingWashDay;
+    return ((0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "bg-amber-950/20 border border-amber-800/40 rounded-2xl p-4 gap-3", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center justify-between", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center gap-2", children: [(0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-xl", children: "\uD83D\uDC87\u200D\u2642\uFE0F" }), (0, jsx_runtime_1.jsxs)(react_native_1.View, { children: [(0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-amber-400 text-xs font-extrabold uppercase tracking-wider", children: "Haircare Regimen" }), (0, jsx_runtime_1.jsxs)(react_native_1.Text, { className: "text-zinc-400 text-[10px]", children: [data.activeProductsCount, " active products"] })] })] }), (0, jsx_runtime_1.jsx)(react_native_1.TouchableOpacity, { onPress: onOpenModule, accessibilityRole: "button", children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-amber-400 text-xs font-semibold", children: "Open \u2192" }) })] }), upcoming ? ((0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "bg-zinc-950/70 border border-zinc-800/60 p-3 rounded-xl flex-row items-center justify-between", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-1 pr-2", children: [(0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-500 text-[10px] font-bold uppercase", children: "Up Next Wash" }), (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-100 text-xs font-bold", numberOfLines: 1, children: upcoming.title })] }), (0, jsx_runtime_1.jsx)(react_native_1.View, { className: "bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full", children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-amber-400 text-[10px] font-bold", children: upcoming.scheduleSummary }) })] })) : ((0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-500 text-xs text-center py-1", children: "No hair routines setup yet." }))] }));
+});

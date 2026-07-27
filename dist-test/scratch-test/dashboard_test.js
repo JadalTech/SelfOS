@@ -14,6 +14,7 @@ const mockUser = {
     uid: 'user_123',
     email: 'test@selfos.app',
     displayName: 'Alex Rivers',
+    photoURL: null,
     emailVerified: true,
 };
 const referenceDate = new Date(2026, 6, 23, 9, 0, 0); // July 23, 2026 at 9:00 AM local time

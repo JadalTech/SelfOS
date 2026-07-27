@@ -1,0 +1,103 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useSleepRecovery = useSleepRecovery;
+const react_query_1 = require("@tanstack/react-query");
+const stores_1 = require("../../../shared/stores");
+const sleep_repository_1 = require("../repository/sleep.repository");
+const sleepRecovery_service_1 = require("../services/sleepRecovery.service");
+const SleepEngine = __importStar(require("../engine/sleepEngine"));
+const queryKeys_1 = require("./queryKeys");
+function useSleepRecovery() {
+    const user = (0, stores_1.useAuthStore)((state) => state.user);
+    const userId = user?.uid;
+    const todayStr = new Date().toISOString().split('T')[0];
+    // 1. Fetch entries
+    const entriesQuery = (0, react_query_1.useQuery)({
+        queryKey: queryKeys_1.sleepKeys.entries(),
+        queryFn: async () => {
+            if (!userId)
+                return [];
+            const res = await sleep_repository_1.sleepRepository.fetchEntries(userId);
+            if (!res.success)
+                throw res.error;
+            return res.data;
+        },
+        enabled: Boolean(userId),
+        staleTime: 5 * 60 * 1000,
+    });
+    // 2. Fetch schedules
+    const schedulesQuery = (0, react_query_1.useQuery)({
+        queryKey: queryKeys_1.sleepKeys.schedule(),
+        queryFn: async () => {
+            if (!userId)
+                return [];
+            const res = await sleep_repository_1.sleepScheduleRepository.fetchSchedules(userId);
+            if (!res.success)
+                throw res.error;
+            return res.data;
+        },
+        enabled: Boolean(userId),
+        staleTime: 5 * 60 * 1000,
+    });
+    const entries = entriesQuery.data ?? [];
+    const activeSchedule = schedulesQuery.data?.find((s) => s.isActive) ?? null;
+    const todayEntry = entries.find((e) => e.date === todayStr) ?? entries[0] ?? null;
+    const recoveryQuery = (0, react_query_1.useQuery)({
+        queryKey: queryKeys_1.sleepKeys.recovery(),
+        queryFn: async () => {
+            if (!userId || !todayEntry || !activeSchedule)
+                return null;
+            // 1. Consistency calculated over the last 7 entries
+            const recentEntries = entries.slice(0, 7);
+            const consistency = SleepEngine.calculateScheduleConsistency(recentEntries, activeSchedule);
+            // 2. Sleep debt calculated over the last 7 entries
+            const targetDuration = activeSchedule.targetDurationMinutes || 480;
+            const debt = SleepEngine.calculateSleepDebt(recentEntries, targetDuration);
+            // 3. Compute recovery using service
+            return sleepRecovery_service_1.sleepRecoveryService.calculateRecovery(userId, todayEntry, activeSchedule, debt, consistency);
+        },
+        // Triggers execution when entries and schedules data are available
+        enabled: Boolean(userId) && !entriesQuery.isLoading && !schedulesQuery.isLoading && Boolean(todayEntry) && Boolean(activeSchedule),
+        staleTime: 5 * 60 * 1000,
+    });
+    return {
+        recovery: recoveryQuery.data ?? null,
+        isLoading: entriesQuery.isLoading || schedulesQuery.isLoading || recoveryQuery.isLoading,
+        isError: entriesQuery.isError || schedulesQuery.isError || recoveryQuery.isError,
+        error: entriesQuery.error || schedulesQuery.error || recoveryQuery.error,
+        refetch: recoveryQuery.refetch,
+    };
+}

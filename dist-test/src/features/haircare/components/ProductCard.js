@@ -1,0 +1,12 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProductCard = void 0;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = __importDefault(require("react"));
+const react_native_1 = require("react-native");
+exports.ProductCard = react_1.default.memo(function ProductCard({ product, onToggleFavorite, onDelete }) {
+    return ((0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "bg-zinc-950/70 border border-zinc-800/80 p-3.5 rounded-2xl gap-2 shadow-sm", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center justify-between", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-1 pr-2", children: [(0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-500 text-[10px] font-bold uppercase tracking-wider", children: product.brand }), (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-100 text-sm font-bold", numberOfLines: 1, children: product.name })] }), onToggleFavorite ? ((0, jsx_runtime_1.jsx)(react_native_1.TouchableOpacity, { className: "p-1", onPress: () => onToggleFavorite(product.id), accessibilityRole: "button", accessibilityLabel: `Toggle favorite for ${product.name}`, children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-base", children: product.isFavorite ? '⭐' : '☆' }) })) : null] }), (0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center justify-between pt-1", children: [(0, jsx_runtime_1.jsx)(react_native_1.View, { className: "bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full", children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-amber-400 text-[9px] font-bold", children: product.categoryLabel }) }), onDelete ? ((0, jsx_runtime_1.jsx)(react_native_1.TouchableOpacity, { onPress: () => onDelete(product.id), accessibilityRole: "button", accessibilityLabel: `Delete ${product.name}`, children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-rose-500 text-xs font-semibold", children: "Delete" }) })) : null] }), product.notes ? ((0, jsx_runtime_1.jsxs)(react_native_1.Text, { className: "text-zinc-400 text-[11px] italic", numberOfLines: 2, children: ["\"", product.notes, "\""] })) : null] }));
+});

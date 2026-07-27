@@ -26,7 +26,7 @@ class HairAIRepository {
                 haircare_repository_1.haircareRepository.fetchHairLogs(userId, 50),
                 hairPhoto_repository_1.hairPhotoRepository.fetchPhotos(userId, 50),
                 hairCondition_repository_1.hairConditionRepository.fetchConditions(userId, 50),
-                routine_1.routineRepository.getUserRoutines({ type: 'haircare' }),
+                routine_1.routineRepository.fetchRoutines({ type: 'haircare' }),
             ]);
             const products = prodsRes.success ? prodsRes.data : [];
             const hairRoutines = routinesRes.success ? routinesRes.data : [];

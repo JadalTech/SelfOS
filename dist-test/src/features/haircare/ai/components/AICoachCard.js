@@ -1,0 +1,12 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AICoachCard = void 0;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = __importDefault(require("react"));
+const react_native_1 = require("react-native");
+exports.AICoachCard = react_1.default.memo(function AICoachCard({ topRecommendation, onOpenCoach }) {
+    return ((0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "bg-gradient-to-r from-amber-950/40 to-zinc-900 border border-amber-500/30 p-4 rounded-2xl gap-3 shadow-md", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center justify-between", children: [(0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "flex-row items-center gap-2", children: [(0, jsx_runtime_1.jsx)(react_native_1.View, { className: "w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 items-center justify-center", children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-base", children: "\uD83E\uDD16" }) }), (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-50 text-sm font-extrabold", children: "AI Hair Coach" })] }), (0, jsx_runtime_1.jsx)(react_native_1.TouchableOpacity, { className: "bg-amber-500 active:bg-amber-600 px-3 py-1.5 rounded-xl shadow-sm", onPress: onOpenCoach, accessibilityRole: "button", children: (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-950 font-extrabold text-xs", children: "Ask AI \u2192" }) })] }), topRecommendation ? ((0, jsx_runtime_1.jsxs)(react_native_1.View, { className: "bg-zinc-950/70 border border-zinc-800 p-3 rounded-xl gap-1", children: [(0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-amber-400 text-xs font-bold", children: "Today's Highlight Recommendation:" }), (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-200 text-xs font-semibold", children: topRecommendation.title }), (0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-400 text-[11px]", numberOfLines: 2, children: topRecommendation.description })] })) : ((0, jsx_runtime_1.jsx)(react_native_1.Text, { className: "text-zinc-400 text-xs italic", children: "Ask your personal AI Coach for advice on your routines, products, or growth progress." }))] }));
+});

@@ -63,8 +63,9 @@ export const REGISTERED_MODULES: ModuleNavVM[] = [
     description: 'Sleep duration & energy scores',
     icon: '😴',
     route: '/(app)/sleep',
-    enabled: false,
-    comingSoon: true,
+    enabled: true,
+    comingSoon: false,
+    badge: 'Active',
   },
   {
     id: 'analytics',
