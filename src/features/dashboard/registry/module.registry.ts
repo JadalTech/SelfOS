@@ -69,6 +69,16 @@ export const REGISTERED_MODULES: ModuleNavVM[] = [
     badge: 'Active',
   },
   {
+    id: 'hydration',
+    title: 'Hydration Intake',
+    description: 'Water intake logs & quality metrics',
+    icon: '💧',
+    route: '/(app)/hydration',
+    enabled: true,
+    comingSoon: false,
+    badge: 'Active',
+  },
+  {
     id: 'analytics',
     title: 'Health Analytics',
     description: 'Cross-module insights & trends',
