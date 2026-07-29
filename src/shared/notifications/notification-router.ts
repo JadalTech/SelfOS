@@ -37,7 +37,7 @@ export class NotificationRouter {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Notifications = require('expo-notifications') as typeof import('expo-notifications');
       if (Notifications && typeof Notifications.addNotificationResponseReceivedListener === 'function') {
-        this.subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+        this.subscription = Notifications.addNotificationResponseReceivedListener((response: any) => {
           const data = response.notification.request.content.data as NotificationPayload;
           this.handleNotificationTap(data);
         });

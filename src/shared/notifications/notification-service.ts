@@ -67,12 +67,14 @@ export class NotificationService {
       shouldShowAlert: options.shouldShowAlert ?? true,
       shouldPlaySound: options.shouldPlaySound ?? true,
       shouldSetBadge: options.shouldSetBadge ?? false,
+      shouldShowBanner: options.shouldShowAlert ?? true,
+      shouldShowList: options.shouldShowAlert ?? true,
     };
 
     if (this.isExpoAvailable && this.expoNotifications) {
       try {
         this.expoNotifications.setNotificationHandler({
-          handleNotification: async () => behavior,
+          handleNotification: async () => behavior as any,
         });
       } catch (error) {
         logger.error('NotificationService', 'Failed to set Expo notification handler', error);

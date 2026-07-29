@@ -10,6 +10,7 @@
  * Treats empty or whitespace-only strings as undefined.
  */
 export function readEnv(key: string): string | undefined {
+  // eslint-disable-next-line expo/no-dynamic-env-var
   const value = process.env[key];
   return value && value.trim().length > 0 ? value.trim() : undefined;
 }
