@@ -22,7 +22,7 @@
     "expo-web-browser": "~57.0.1",
     "firebase": "^12.16.0",
     "nativewind": "^4.2.6",
-    "postcss": "^8.5.22",
+    "postcss": "^8.5.25",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.82.0",
