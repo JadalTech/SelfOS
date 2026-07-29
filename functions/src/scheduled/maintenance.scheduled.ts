@@ -3,6 +3,7 @@
  */
 
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { FUNCTION_CONFIG } from '../shared/config';
 import { logger } from '../shared/logger';
 import { adminDb } from '../shared/firebase';
@@ -26,7 +27,7 @@ export const dailyMaintenanceScheduled = onSchedule(
 
     if (!oldEventsSnap.empty) {
       const batch = adminDb.batch();
-      oldEventsSnap.docs.forEach((doc) => batch.delete(doc.ref));
+      oldEventsSnap.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
       await batch.commit();
       logger.info('dailyMaintenanceScheduled', `Purged ${oldEventsSnap.size} old idempotency logs.`);
     }

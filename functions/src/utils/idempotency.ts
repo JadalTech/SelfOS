@@ -5,6 +5,7 @@
  * Prevents repeated trigger executions from corrupting data.
  */
 
+import { Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { adminDb } from '../shared/firebase';
 import { logger } from '../shared/logger';
 
@@ -15,10 +16,10 @@ export async function processIdempotently(
   triggerName: string,
   handler: () => Promise<void>
 ): Promise<boolean> {
-  const eventRef = adminDb.collection(IDEMPOTENCY_COLLECTION).doc(eventId);
+  const eventRef: DocumentReference = adminDb.collection(IDEMPOTENCY_COLLECTION).doc(eventId);
 
   try {
-    const executed = await adminDb.runTransaction(async (transaction) => {
+    const executed = await adminDb.runTransaction(async (transaction: Transaction) => {
       const doc = await transaction.get(eventRef);
       if (doc.exists) {
         logger.info('IdempotencyGuard', `Event "${eventId}" for trigger "${triggerName}" already processed. Skipping.`);

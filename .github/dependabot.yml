@@ -1,0 +1,42 @@
+# Dependabot Configuration for SelfOS
+version: 2
+updates:
+  # Package manager update for root npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    target-branch: "develop"
+    ignore:
+      # Freeze Expo SDK & React Native core versions to match tested Expo runtime
+      - dependency-name: "expo"
+      - dependency-name: "react-native"
+      - dependency-name: "react"
+
+  # Package manager update for Cloud Functions dependencies
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+    open-pull-requests-limit: 5
+    labels:
+      - "functions"
+      - "dependencies"
+    target-branch: "develop"
+
+  # GitHub Actions workflow updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "ci/cd"
+      - "github-actions"

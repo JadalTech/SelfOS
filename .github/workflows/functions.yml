@@ -1,0 +1,88 @@
+name: SelfOS Cloud Functions & Rules Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'functions/**'
+      - 'firestore.rules'
+      - 'storage.rules'
+      - 'firebase.json'
+      - '.github/workflows/functions.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'functions/**'
+      - 'firestore.rules'
+      - 'storage.rules'
+      - 'firebase.json'
+
+concurrency:
+  group: ci-functions-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-functions:
+    name: Build & Test Cloud Functions & Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime (Root & Functions)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Functions Dependencies
+        run: |
+          npm ci
+          cd functions && npm ci
+
+      - name: Build Functions TypeScript
+        run: cd functions && npm run build
+
+      - name: Execute Functions Unit Tests & Idempotency Tests
+        run: |
+          npx tsx functions/__tests__/functions.test.ts
+          npx tsx functions/__tests__/unit/callable-functions.test.ts
+          npx tsx functions/__tests__/unit/idempotency.test.ts
+
+      - name: Verify Firestore Security Rules
+        run: npx tsx src/shared/firebase/__tests__/firestore.rules.test.ts
+
+  deploy-firebase:
+    name: Deploy Security Rules & Cloud Functions
+    needs: test-functions
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Firebase CLI & Dependencies
+        run: |
+          npm install -g firebase-tools
+          cd functions && npm ci && npm run build
+
+      - name: Deploy Firestore & Storage Rules
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only firestore:rules,storage:rules --non-interactive --token "$FIREBASE_TOKEN"
+
+      - name: Deploy Cloud Functions v2 Backend
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only functions --non-interactive --token "$FIREBASE_TOKEN"
