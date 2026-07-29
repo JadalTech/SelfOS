@@ -25,8 +25,8 @@ function formatPrefix(level: LogLevel, context: string): string {
 
 function createLogger(): Logger {
   const log = (level: LogLevel, context: string, message: string, ...data: unknown[]): void => {
-    // Suppress all logging in production
-    if (!__DEV__) {
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
+    if (!isDev) {
       return;
     }
 

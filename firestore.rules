@@ -1,0 +1,167 @@
+rules_version = '2';
+
+/**
+ * SelfOS Production Firestore Security Rules
+ *
+ * Enforces Principle of Least Privilege:
+ * - Explicit collection rules for every domain module.
+ * - Single ownership standard using the `uid` field.
+ * - Strict field immutability for `uid` and `createdAt`.
+ * - Schema validation for required fields on document creation.
+ * - Catch-all default denial for unhandled paths.
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // HELPER FUNCTIONS
+    // =========================================================================
+
+    /** Checks if the request comes from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the authenticated user matches the given userId parameter. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** Checks if the authenticated user owns the existing document in Firestore. */
+    function isDocumentOwner() {
+      return isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    /** Checks if the authenticated user is setting themselves as owner in the incoming write. */
+    function isCreatingAsOwner() {
+      return isSignedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    /** Verifies that a field has not been changed during an update operation. */
+    function isImmutable(field) {
+      return !(field in request.resource.data) || request.resource.data[field] == resource.data[field];
+    }
+
+    /** Checks if the incoming request contains all required schema keys. */
+    function hasRequiredFields(requiredKeys) {
+      return request.resource.data.keys().hasAll(requiredKeys);
+    }
+
+    /** Checks if the incoming request contains ONLY allowed schema keys. */
+    function hasOnlyAllowedFields(allowedKeys) {
+      return request.resource.data.keys().hasOnly(allowedKeys);
+    }
+
+    /** Verifies that a field contains a valid timestamp. */
+    function isValidTimestamp(field) {
+      return request.resource.data[field] is timestamp;
+    }
+
+    // =========================================================================
+    // COLLECTION RULES
+    // =========================================================================
+
+    // --- 1. User Profiles (/users/{userId}) ---
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && (request.resource.data.uid == userId)
+        && hasRequiredFields(['uid', 'email', 'createdAt', 'updatedAt']);
+      allow update: if isOwner(userId)
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isOwner(userId);
+    }
+
+    // --- 2. Routines (/routines/{routineId}) ---
+    match /routines/{routineId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'title', 'type', 'status', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+
+      // Routine Logs Subcollection (/routines/{routineId}/logs/{logId})
+      match /logs/{logId} {
+        allow read: if isDocumentOwner();
+        allow create: if isCreatingAsOwner()
+          && hasRequiredFields(['uid', 'routineId', 'status', 'date', 'timestamp']);
+        allow update: if isDocumentOwner()
+          && isCreatingAsOwner()
+          && isImmutable('uid')
+          && isImmutable('routineId');
+        allow delete: if isDocumentOwner();
+      }
+    }
+
+    // --- 3. Tasks (/tasks/{taskId}) ---
+    match /tasks/{taskId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'title', 'status', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+    }
+
+    // --- 4. Journal (/journal/{entryId}) ---
+    match /journal/{entryId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'title', 'content', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+    }
+
+    // --- 5. Goals (/goals/{goalId}) ---
+    match /goals/{goalId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'title', 'status', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+    }
+
+    // --- 6. Finance (/finance/{recordId}) ---
+    match /finance/{recordId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'amount', 'type', 'category', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+    }
+
+    // --- 7. Notes (/notes/{noteId}) ---
+    match /notes/{noteId} {
+      allow read: if isDocumentOwner();
+      allow create: if isCreatingAsOwner()
+        && hasRequiredFields(['uid', 'title', 'content', 'createdAt', 'updatedAt']);
+      allow update: if isDocumentOwner()
+        && isCreatingAsOwner()
+        && isImmutable('uid')
+        && isImmutable('createdAt');
+      allow delete: if isDocumentOwner();
+    }
+
+    // =========================================================================
+    // DEFAULT FALLBACK DENIAL
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

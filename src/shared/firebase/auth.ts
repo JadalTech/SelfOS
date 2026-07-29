@@ -12,9 +12,9 @@
  */
 
 import { initializeAuth, getAuth } from 'firebase/auth';
-import type { Auth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirebaseApp } from './app';
+import type { FirebaseAuthInstance } from './types';
 
 // Firebase JS SDK v10.12+ / v12 ships getReactNativePersistence in the
 // main firebase/auth bundle but the TS typings don't always expose it.
@@ -26,7 +26,7 @@ const { getReactNativePersistence } = require('firebase/auth') as {
   ) => import('firebase/auth').Persistence;
 };
 
-let _auth: Auth | null = null;
+let _auth: FirebaseAuthInstance | null = null;
 
 /**
  * Returns the Firebase Auth instance, initializing it on first call.
@@ -34,7 +34,7 @@ let _auth: Auth | null = null;
  * Configures auth state persistence with AsyncStorage so that
  * the user's session survives app restarts.
  */
-export function getFirebaseAuth(): Auth {
+export function getFirebaseAuth(): FirebaseAuthInstance {
   if (_auth) {
     return _auth;
   }
@@ -46,9 +46,16 @@ export function getFirebaseAuth(): Auth {
     _auth = initializeAuth(app, {
       persistence: getReactNativePersistence(AsyncStorage),
     });
-  } catch {
-    // If auth was already initialized (e.g., hot reload), retrieve existing
-    _auth = getAuth(app);
+  } catch (error: unknown) {
+    // Handle Expo Fast Refresh / HMR where initializeAuth was previously called.
+    // Firebase throws an error if initializeAuth is called twice on the same FirebaseApp.
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('already') || message.includes('already-initialized')) {
+      _auth = getAuth(app);
+    } else {
+      // Re-throw unexpected errors (e.g. invalid persistence configuration)
+      throw error;
+    }
   }
 
   return _auth;

@@ -58,6 +58,10 @@ export class AppError extends Error {
     return new AppError('VALIDATION_ERROR', message, { statusCode: 400 });
   }
 
+  static storage(message = 'A local storage error occurred.'): AppError {
+    return new AppError('STORAGE_ERROR', message, { statusCode: 500 });
+  }
+
   static notFound(message = 'The requested resource was not found.'): AppError {
     return new AppError('NOT_FOUND', message, { statusCode: 404 });
   }

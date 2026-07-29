@@ -1,71 +1,34 @@
 /**
- * Environment Configuration
+ * Generic Environment Helper & Validator
  *
- * Validates and exports all required environment variables.
- * Fails early with descriptive errors if required values are missing.
- *
- * - In development: logs a detailed table of missing variables.
- * - In production: fails safely without leaking variable names.
+ * Provides a reusable, strongly-typed environment variable parser.
+ * Uses `process.env` as the single source of truth for `EXPO_PUBLIC_*` variables.
  */
-
-import Constants from 'expo-constants';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface FirebaseConfig {
-  readonly apiKey: string;
-  readonly authDomain: string;
-  readonly projectId: string;
-  readonly storageBucket: string;
-  readonly messagingSenderId: string;
-  readonly appId: string;
-  readonly measurementId?: string;
-}
-
-export interface AppConfig {
-  readonly firebase: FirebaseConfig;
-  readonly isDev: boolean;
-  readonly isProd: boolean;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 /**
- * Reads an environment variable from Expo's extra config or process.env.
- * Expo SDK 49+ exposes EXPO_PUBLIC_* vars on process.env automatically.
+ * Reads an environment variable directly from process.env.
+ * Treats empty or whitespace-only strings as undefined.
  */
-function readEnv(key: string): string | undefined {
-  // Expo injects EXPO_PUBLIC_* onto process.env at build time
-  const value =
-    (Constants.expoConfig?.extra?.[key] as string | undefined) ??
-    process.env[key];
-
-  // Treat empty strings as undefined
+export function readEnv(key: string): string | undefined {
+  const value = process.env[key];
   return value && value.trim().length > 0 ? value.trim() : undefined;
 }
 
 /**
- * Validates that all required environment variables are present.
- * Throws a descriptive error if any are missing.
+ * Validates that all required environment keys are present.
+ * Throws a descriptive, fail-fast error if any are missing.
+ *
+ * @param keys Array of required environment variable names
+ * @param serviceName Name of the service requiring these keys (e.g. 'Firebase', 'OpenAI')
  */
-function validateEnv(): FirebaseConfig {
-  const requiredKeys = [
-    'EXPO_PUBLIC_FIREBASE_API_KEY',
-    'EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'EXPO_PUBLIC_FIREBASE_PROJECT_ID',
-    'EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    'EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'EXPO_PUBLIC_FIREBASE_APP_ID',
-  ] as const;
+export function validateEnvKeys<K extends string>(
+  keys: readonly K[],
+  serviceName: string,
+): Record<K, string> {
+  const missing: K[] = [];
+  const values = {} as Record<K, string>;
 
-  const missing: string[] = [];
-  const values: Record<string, string> = {};
-
-  for (const key of requiredKeys) {
+  for (const key of keys) {
     const value = readEnv(key);
     if (!value) {
       missing.push(key);
@@ -76,47 +39,18 @@ function validateEnv(): FirebaseConfig {
 
   if (missing.length > 0) {
     if (__DEV__) {
-      // Development: provide a detailed, actionable error message.
       const missingList = missing.map((k) => `  • ${k}`).join('\n');
       throw new Error(
-        `[SelfOS] Missing required environment variables:\n\n${missingList}\n\n` +
-          'Create a .env file in the project root using .env.example as a template.\n' +
-          'Then restart the development server.',
+        `[SelfOS] Missing required environment variables for ${serviceName}:\n\n${missingList}\n\n` +
+          'Create or update your .env file in the project root using .env.example as a template.\n' +
+          'Then restart the Expo development server.',
       );
     } else {
-      // Production: fail safely without exposing variable names.
       throw new Error(
-        '[SelfOS] Application configuration is incomplete. ' +
-          'Please contact support or check deployment environment.',
+        `[SelfOS] ${serviceName} configuration is incomplete. Please check deployment environment.`,
       );
     }
   }
 
-  return {
-    apiKey: values['EXPO_PUBLIC_FIREBASE_API_KEY']!,
-    authDomain: values['EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN']!,
-    projectId: values['EXPO_PUBLIC_FIREBASE_PROJECT_ID']!,
-    storageBucket: values['EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET']!,
-    messagingSenderId: values['EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID']!,
-    appId: values['EXPO_PUBLIC_FIREBASE_APP_ID']!,
-    measurementId: readEnv('EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID'),
-  };
+  return values;
 }
-
-// ---------------------------------------------------------------------------
-// Export
-// ---------------------------------------------------------------------------
-
-/**
- * Validated, frozen application configuration.
- * Import this wherever environment values are needed.
- *
- * Will throw immediately on import if required values are missing,
- * ensuring the app fails fast during startup rather than at an
- * unpredictable later point.
- */
-export const config: AppConfig = Object.freeze({
-  firebase: Object.freeze(validateEnv()),
-  isDev: __DEV__,
-  isProd: !__DEV__,
-});

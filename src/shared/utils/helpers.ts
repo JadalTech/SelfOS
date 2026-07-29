@@ -5,7 +5,16 @@
  * No speculative helpers — add when a real need arises.
  */
 
-import { Platform } from 'react-native';
+let platformOS: string = 'web';
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { Platform } = require('react-native');
+  if (Platform && Platform.OS) {
+    platformOS = Platform.OS;
+  }
+} catch {
+  platformOS = 'web';
+}
 
 /**
  * Clamp a number between a minimum and maximum value.
@@ -39,10 +48,6 @@ export function sleep(ms: number): Promise<void> {
 
 /**
  * Type guard to filter out null and undefined values.
- *
- * Usage:
- *   const items = [1, null, 2, undefined].filter(isNonNullable);
- *   // items: number[]
  */
 export function isNonNullable<T>(value: T): value is NonNullable<T> {
   return value !== null && value !== undefined;
@@ -51,14 +56,14 @@ export function isNonNullable<T>(value: T): value is NonNullable<T> {
 /**
  * Check if the current platform is iOS.
  */
-export const isIOS = Platform.OS === 'ios';
+export const isIOS = platformOS === 'ios';
 
 /**
  * Check if the current platform is Android.
  */
-export const isAndroid = Platform.OS === 'android';
+export const isAndroid = platformOS === 'android';
 
 /**
  * Check if the current platform is web.
  */
-export const isWeb = Platform.OS === 'web';
+export const isWeb = platformOS === 'web';

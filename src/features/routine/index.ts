@@ -49,6 +49,7 @@ export type { RoutineFormValues } from './validation/routine.validation';
 
 // Repository & Services
 export { routineRepository, RoutineRepository } from './repository/routine.repository';
+export type { IRoutineRepository, CreateRoutinePayload, UpdateRoutinePayload } from './domain/repositories/routine.repository.interface';
 export { routineService, RoutineService } from './services/routine.service';
 
 // Constants & Query Keys

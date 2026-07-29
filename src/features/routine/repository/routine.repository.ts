@@ -12,12 +12,18 @@ import { getFirebaseAuth } from '@/shared/firebase';
 import { ok, err } from '@/shared/types';
 import type { Result } from '@/shared/types';
 import { AppError, normalizeFirebaseError } from '@/shared/errors';
-import { routineService } from '../services/routine.service';
+import { routineService, RoutineService } from '../services/routine.service';
 import { calculateCompletionStreak, rebuildStreakFromLogs } from '../engine/streak';
 import type { Routine, RoutineLog, RoutineType, RoutineStatus } from '../types';
 import type { RoutineFormValues } from '../validation/routine.validation';
+import type {
+  IRoutineRepository,
+  CreateRoutinePayload,
+  UpdateRoutinePayload,
+} from '../domain/repositories/routine.repository.interface';
 
-export class RoutineRepository {
+export class RoutineRepository implements IRoutineRepository {
+  constructor(private readonly service: RoutineService = routineService) {}
   /**
    * Helper to ensure an authenticated user session exists.
    */
@@ -278,8 +284,7 @@ export class RoutineRepository {
       // Filter out the log being undone
       const remainingLogs = allLogs.filter((log) => log.id !== logId);
 
-      // Delegate pure streak recalculation to domain engine
-      const streakUpdate = rebuildStreakFromLogs(routine, remainingLogs);
+      const streakUpdate = rebuildStreakFromLogs(remainingLogs);
 
       await routineService.writeUndoBatch(uid, logId, routineId, streakUpdate);
       return ok(undefined);
@@ -287,6 +292,46 @@ export class RoutineRepository {
       return err(normalizeFirebaseError(error));
     }
   }
+
+  /**
+   * Fetch single routine by ID (IRoutineRepository compliant).
+   */
+  async getRoutine(uid: string, id: string): Promise<Result<Routine | null>> {
+    try {
+      const routine = await this.service.fetchRoutine(uid, id);
+      return ok(routine);
+    } catch (error) {
+      return err(normalizeFirebaseError(error));
+    }
+  }
+
+  /**
+   * List routines for user (IRoutineRepository compliant).
+   */
+  async listRoutines(
+    uid: string,
+    filters?: { type?: RoutineType; status?: RoutineStatus }
+  ): Promise<Result<Routine[]>> {
+    try {
+      const routines = await this.service.fetchRoutines(uid, filters);
+      return ok(routines);
+    } catch (error) {
+      return err(normalizeFirebaseError(error));
+    }
+  }
+
+  /**
+   * Permanently delete routine (IRoutineRepository compliant).
+   */
+  async deleteRoutine(uid: string, id: string): Promise<Result<void>> {
+    try {
+      await this.service.deleteRoutinePermanently(uid, id);
+      return ok(undefined);
+    } catch (error) {
+      return err(normalizeFirebaseError(error));
+    }
+  }
 }
 
-export const routineRepository = new RoutineRepository();
+export const routineRepository: IRoutineRepository = new RoutineRepository();
+

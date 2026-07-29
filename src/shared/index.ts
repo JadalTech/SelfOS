@@ -57,3 +57,18 @@ export { FullScreenLoader, InlineLoader } from './components';
 
 // Providers
 export { Providers } from './providers';
+
+// Offline Infrastructure
+export * from './offline';
+export * from './queue';
+export * from './sync';
+export type { QueuedMutation, MutationType, MutationContext } from './types/mutation';
+
+// Notifications & Reminders
+export * from './notifications';
+
+// Observability
+export * from './observability';
+
+
+

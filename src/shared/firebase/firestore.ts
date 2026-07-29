@@ -6,15 +6,15 @@
  */
 
 import { getFirestore as _getFirestore } from 'firebase/firestore';
-import type { Firestore } from 'firebase/firestore';
 import { getFirebaseApp } from './app';
+import type { FirestoreDbInstance } from './types';
 
-let _firestore: Firestore | null = null;
+let _firestore: FirestoreDbInstance | null = null;
 
 /**
  * Returns the Firestore instance, initializing it on first call.
  */
-export function getFirebaseFirestore(): Firestore {
+export function getFirebaseFirestore(): FirestoreDbInstance {
   if (_firestore) {
     return _firestore;
   }

@@ -1,85 +1,89 @@
 /**
  * Auth Store
  *
- * State-only store for authentication status.
- * Contains no Firebase logic.
- *
- * Supports four states to prevent UI flickering:
- * - unknown: App startup, token not yet verified
- * - checking: Explicit auth action in progress (login/register/refresh)
- * - authenticated: User is logged in and email is verified
- * - unauthenticated: User is logged out or email is unverified
+ * State-only Zustand store for authentication state management.
+ * Contains ZERO Firebase SDK logic or direct API calls.
  */
 
 import { create } from 'zustand';
 import type { Nullable } from '@/shared/types';
+import type { AppUser } from '@/features/auth/domain/entities/AppUser';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+export type { AppUser };
 
-export interface AppUser {
-  readonly uid: string;
-  readonly email: string | null;
-  readonly displayName: string | null;
-  readonly photoURL: string | null;
-  readonly emailVerified: boolean;
-}
-
-export type AuthStatus = 'unknown' | 'checking' | 'authenticated' | 'unauthenticated';
+/**
+ * Single source of truth for authentication lifecycle states.
+ * Guarantees mutually exclusive, non-ambiguous state transitions:
+ * - initializing: Restoring persistent session on app boot
+ * - unauthenticated: User is logged out or session expired
+ * - email_verification_required: Authenticated but email verification is pending
+ * - authenticated: Fully authenticated user session
+ */
+export type AuthStatus =
+  | 'initializing'
+  | 'unauthenticated'
+  | 'email_verification_required'
+  | 'authenticated';
 
 interface AuthState {
-  /** Current authenticated user, or null if signed out/unverified */
-  user: Nullable<AppUser>;
+  /** Current authenticated domain user, or null if signed out */
+  readonly user: Nullable<AppUser>;
   /** The current authentication status */
-  status: AuthStatus;
-  /** Whether the initial session check has finished */
-  isInitialized: boolean;
+  readonly authStatus: AuthStatus;
+  /** Optional error message */
+  readonly error: Nullable<string>;
 }
 
 interface AuthActions {
-  /** Sets the user and transitions the status accordingly */
+  /** Sets the active domain user and derives the exact AuthStatus */
   setUser: (user: Nullable<AppUser>) => void;
-  /** Explicitly sets the checking status */
-  setChecking: () => void;
-  /** Reset the store to initial unauthenticated state */
+  /** Clears the user session */
+  clearUser: () => void;
+  /** Sets or clears an error message */
+  setError: (error: Nullable<string>) => void;
+  /** Reset store state */
   reset: () => void;
 }
 
-// ---------------------------------------------------------------------------
-// Initial State
-// ---------------------------------------------------------------------------
-
 const initialState: AuthState = {
   user: null,
-  status: 'unknown',
-  isInitialized: false,
+  authStatus: 'initializing',
+  error: null,
 };
-
-// ---------------------------------------------------------------------------
-// Store
-// ---------------------------------------------------------------------------
 
 export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
   ...initialState,
 
-  setUser: (user) =>
+  setUser: (user) => {
+    let status: AuthStatus = 'unauthenticated';
+
+    if (user) {
+      status = user.emailVerified ? 'authenticated' : 'email_verification_required';
+    }
+
     set({
       user,
-      status: user ? (user.emailVerified ? 'authenticated' : 'unauthenticated') : 'unauthenticated',
-      isInitialized: true,
+      authStatus: status,
+      error: null,
+    });
+  },
+
+  clearUser: () =>
+    set({
+      user: null,
+      authStatus: 'unauthenticated',
+      error: null,
     }),
 
-  setChecking: () =>
+  setError: (error: Nullable<string>) =>
     set({
-      status: 'checking',
+      error,
     }),
 
   reset: () =>
     set({
       user: null,
-      status: 'unauthenticated',
-      isInitialized: true,
+      authStatus: 'unauthenticated',
+      error: null,
     }),
 }));
-

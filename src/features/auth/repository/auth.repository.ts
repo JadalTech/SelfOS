@@ -1,41 +1,35 @@
 /**
- * Authentication Repository
+ * FirebaseAuthRepository
  *
- * Implements the domain boundary for authentication.
- * Responsible for mapping Firebase SDK results to domain models (AppUser),
- * catching and normalizing database errors, and returning Result wrappers.
+ * Implements `IAuthRepository` using `FirebaseAuthService`.
+ * Translates Firebase SDK objects (`User`) to domain models (`AppUser`).
+ * Wraps all failures into normalized application errors (`AppError`).
  *
- * Has NO knowledge of navigation, stores, alerts, or UI state.
+ * Prevents Firebase SDK leaking into Domain/Presentation layers.
  */
 
-import type { User } from 'firebase/auth';
 import { ok, err } from '@/shared/types';
 import type { Result } from '@/shared/types';
 import { normalizeFirebaseError } from '@/shared/errors';
-import { firebaseAuthService } from '../services/firebase-auth.service';
-import type { AppUser } from '../types';
+import { firebaseAuthService, FirebaseAuthService } from '../services/firebase-auth.service';
+import type { AppUser } from '../domain/entities/AppUser';
+import { mapFirebaseUser } from '../infrastructure/mappers/firebase-user.mapper';
 import type { LoginFields, RegisterFields } from '../validation/auth.schemas';
+import type {
+  IAuthRepository,
+  AuthStateChangeCallback,
+  UnsubscribeAuthListener,
+} from '../domain/auth.repository.interface';
 
-/**
- * Maps a Firebase SDK User object into the lightweight AppUser type.
- */
-export function mapFirebaseUser(user: User): AppUser {
-  return {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    emailVerified: user.emailVerified,
-  };
-}
+export class FirebaseAuthRepository implements IAuthRepository {
+  constructor(private readonly authService: FirebaseAuthService = firebaseAuthService) {}
 
-export class AuthRepository {
   /**
    * Log in user, map response to AppUser, and catch errors.
    */
   async signIn(credentials: LoginFields): Promise<Result<AppUser>> {
     try {
-      const userCredential = await firebaseAuthService.signIn(credentials);
+      const userCredential = await this.authService.signIn(credentials);
       const appUser = mapFirebaseUser(userCredential.user);
       return ok(appUser);
     } catch (error) {
@@ -48,7 +42,7 @@ export class AuthRepository {
    */
   async signUp(credentials: RegisterFields): Promise<Result<AppUser>> {
     try {
-      const user = await firebaseAuthService.signUp(credentials);
+      const user = await this.authService.signUp(credentials);
       const appUser = mapFirebaseUser(user);
       return ok(appUser);
     } catch (error) {
@@ -61,7 +55,7 @@ export class AuthRepository {
    */
   async signOut(): Promise<Result<void>> {
     try {
-      await firebaseAuthService.signOut();
+      await this.authService.signOut();
       return ok(undefined);
     } catch (error) {
       return err(normalizeFirebaseError(error));
@@ -73,7 +67,7 @@ export class AuthRepository {
    */
   async sendPasswordReset(email: string): Promise<Result<void>> {
     try {
-      await firebaseAuthService.sendPasswordReset(email);
+      await this.authService.sendPasswordReset(email);
       return ok(undefined);
     } catch (error) {
       return err(normalizeFirebaseError(error));
@@ -85,7 +79,7 @@ export class AuthRepository {
    */
   async sendVerificationEmail(): Promise<Result<void>> {
     try {
-      await firebaseAuthService.sendVerificationEmail();
+      await this.authService.sendVerificationEmail();
       return ok(undefined);
     } catch (error) {
       return err(normalizeFirebaseError(error));
@@ -97,7 +91,7 @@ export class AuthRepository {
    */
   async reloadCurrentUser(): Promise<Result<AppUser | null>> {
     try {
-      const user = await firebaseAuthService.reloadCurrentUser();
+      const user = await this.authService.reloadCurrentUser();
       if (!user) {
         return ok(null);
       }
@@ -107,6 +101,23 @@ export class AuthRepository {
       return err(normalizeFirebaseError(error));
     }
   }
+
+  /**
+   * Returns current authenticated domain user synchronously.
+   */
+  getCurrentUser(): AppUser | null {
+    const firebaseUser = this.authService.getCurrentUser();
+    return firebaseUser ? mapFirebaseUser(firebaseUser) : null;
+  }
+
+  /**
+   * Listens to auth state changes, converting raw SDK user objects to AppUser.
+   */
+  onAuthStateChanged(callback: AuthStateChangeCallback): UnsubscribeAuthListener {
+    return this.authService.onAuthStateChanged((user) => {
+      callback(user ? mapFirebaseUser(user) : null);
+    });
+  }
 }
 
-export const authRepository = new AuthRepository();
+export const authRepository: IAuthRepository = new FirebaseAuthRepository();

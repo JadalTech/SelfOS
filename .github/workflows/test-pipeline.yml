@@ -1,0 +1,61 @@
+name: SelfOS Test Infrastructure CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run Comprehensive Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Type Checking
+        run: npx tsc --noEmit
+
+      - name: ESLint Static Audit
+        run: npx expo lint
+
+      - name: Execute Offline Infrastructure Unit Tests
+        run: npx tsx src/shared/offline/__tests__/offline-infrastructure.test.ts
+
+      - name: Execute Observability Unit Tests
+        run: npx tsx src/shared/observability/__tests__/observability.test.ts
+
+      - name: Execute Notifications Unit Tests
+        run: npx tsx src/shared/notifications/__tests__/notifications.test.ts
+
+      - name: Execute Shared Utilities & Validators Unit Tests
+        run: npx tsx src/shared/utils/__tests__/validators.test.ts
+
+      - name: Execute Mappers & ViewModels Unit Tests
+        run: npx tsx src/shared/utils/__tests__/mappers.test.ts
+
+      - name: Execute Repository Integration Tests
+        run: npx tsx __tests__/repository/routine.repository.test.ts
+
+      - name: Execute React Query Tests
+        run: npx tsx __tests__/react-query/react-query.test.ts
+
+      - name: Execute Cloud Functions Unit Tests
+        run: |
+          npx tsx functions/__tests__/functions.test.ts
+          npx tsx functions/__tests__/unit/callable-functions.test.ts
+          npx tsx functions/__tests__/unit/idempotency.test.ts
+
+      - name: Execute End-to-End (E2E) Test Suite
+        run: npx tsx __tests__/e2e/e2e-suite.test.ts

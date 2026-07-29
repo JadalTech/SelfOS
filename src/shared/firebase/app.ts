@@ -9,11 +9,11 @@
  * Firebase is only loaded when actually needed.
  */
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import type { FirebaseApp } from 'firebase/app';
-import { config } from '@/shared/config';
+import { firebaseConfig } from '@/shared/config';
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import type { FirebaseAppInstance } from './types';
 
-let _app: FirebaseApp | null = null;
+let _app: FirebaseAppInstance | null = null;
 
 /**
  * Returns the Firebase app instance, initializing it on first call.
@@ -22,7 +22,7 @@ let _app: FirebaseApp | null = null;
  * - Safe to call from multiple modules/files.
  * - Guards against duplicate initialization via `getApps()`.
  */
-export function getFirebaseApp(): FirebaseApp {
+export function getFirebaseApp(): FirebaseAppInstance {
   if (_app) {
     return _app;
   }
@@ -34,15 +34,7 @@ export function getFirebaseApp(): FirebaseApp {
     return _app;
   }
 
-  _app = initializeApp({
-    apiKey: config.firebase.apiKey,
-    authDomain: config.firebase.authDomain,
-    projectId: config.firebase.projectId,
-    storageBucket: config.firebase.storageBucket,
-    messagingSenderId: config.firebase.messagingSenderId,
-    appId: config.firebase.appId,
-    measurementId: config.firebase.measurementId,
-  });
+  _app = initializeApp(firebaseConfig);
 
   return _app;
 }

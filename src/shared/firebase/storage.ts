@@ -6,15 +6,15 @@
  */
 
 import { getStorage as _getStorage } from 'firebase/storage';
-import type { FirebaseStorage } from 'firebase/storage';
 import { getFirebaseApp } from './app';
+import type { FirebaseStorageInstance } from './types';
 
-let _storage: FirebaseStorage | null = null;
+let _storage: FirebaseStorageInstance | null = null;
 
 /**
  * Returns the Firebase Storage instance, initializing it on first call.
  */
-export function getFirebaseStorage(): FirebaseStorage {
+export function getFirebaseStorage(): FirebaseStorageInstance {
   if (_storage) {
     return _storage;
   }

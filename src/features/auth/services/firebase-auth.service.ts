@@ -12,6 +12,7 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
   updateProfile,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import type { User, UserCredential } from 'firebase/auth';
 import { getFirebaseAuth } from '@/shared/firebase';
@@ -80,6 +81,22 @@ export class FirebaseAuthService {
     }
     return null;
   }
+  /**
+   * Returns the current authenticated Firebase user synchronously.
+   */
+  getCurrentUser(): User | null {
+    const auth = getFirebaseAuth();
+    return auth.currentUser;
+  }
+
+  /**
+   * Subscribes to Firebase auth state changes.
+   */
+  onAuthStateChanged(callback: (user: User | null) => void): () => void {
+    const auth = getFirebaseAuth();
+    return onAuthStateChanged(auth, callback);
+  }
 }
 
 export const firebaseAuthService = new FirebaseAuthService();
+
